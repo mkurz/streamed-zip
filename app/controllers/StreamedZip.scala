@@ -63,12 +63,17 @@ class StreamedZip(bufferSize: Int = 64 * 1024)
                                                                                with StageLogging {
     private val buffer = new ZipBuffer(bufferSize)
     private var currentStream: Option[InputStream] = None
+    private var emptyStream = true
 
     setHandler(out, new OutHandler {
       override def onPull(): Unit = {
         if (isClosed(in)) {
-          if (buffer.isEmpty) completeStage()
-          else {
+          if (buffer.isEmpty) {
+            emptyStream = true // TODO: Here or at the end of the outer if(isClosed(in)){...}?
+                               // See https://gist.github.com/kirked/03c7f111de0e9a1f74377bf95d3f0f60#gistcomment-2871969
+                               // and https://gist.github.com/michalbogacz/08868f51b7053cadfef00f51196bf2ec
+            completeStage()
+          } else {
             buffer.close
             push(out, buffer.toByteString)
           }
@@ -86,6 +91,7 @@ class StreamedZip(bufferSize: Int = 64 * 1024)
 
     setHandler(in, new InHandler {
       override def onPush(): Unit = {
+        emptyStream = false
         val (filepath, source) = grab(in)
         buffer.startEntry(filepath)
         val stream = source()
@@ -103,8 +109,9 @@ class StreamedZip(bufferSize: Int = 64 * 1024)
           if (isAvailable(out)) {
             push(out, buffer.toByteString)
           }
+        } else if(emptyStream) {
+          super.onUpstreamFinish()
         }
-        else super.onUpstreamFinish()
       }
     })
 
@@ -147,7 +154,7 @@ class StreamedZip(bufferSize: Int = 64 * 1024)
         }
       }
 
-      result.iterator
+      result.iterator // TODO: https://gist.github.com/kirked/03c7f111de0e9a1f74377bf95d3f0f60#gistcomment-2978191
     }
   }
 }
