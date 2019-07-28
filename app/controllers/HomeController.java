@@ -15,9 +15,11 @@ public class HomeController extends Controller {
     public Result index() {
         final List<ZipToStreamFlow.ZipSource> filesToZip = new ArrayList<>();
 
+        // If you remove the emptyStream flag in ZipToStreamFlow.scala and try to zip (only!) file1.txt (see project's root folder)
+        // it will produce a broken zip file!
         filesToZip.add(new ZipToStreamFlow.ZipSource("myfile1.txt", fileAsLazyInputStream("/tmp/file1.txt")));
-        filesToZip.add(new ZipToStreamFlow.ZipSource("myfile2.txt", fileAsLazyInputStream("/tmp/file2.txt")));
-        filesToZip.add(new ZipToStreamFlow.ZipSource("subfolder/myfile3.txt", fileAsLazyInputStream("/tmp/file3.txt")));
+        //filesToZip.add(new ZipToStreamFlow.ZipSource("myfile2.txt", fileAsLazyInputStream("/tmp/file2.txt")));
+        //filesToZip.add(new ZipToStreamFlow.ZipSource("subfolder/myfile3.txt", fileAsLazyInputStream("/tmp/file3.txt")));
         // For s3 you have to do something like this:
         //filesToZip.add(new ZipToStreamFlow.ZipSource("file_from_s3.txt", (scala.Function0) () -> s3.getInputStream(storagePath)));
 
