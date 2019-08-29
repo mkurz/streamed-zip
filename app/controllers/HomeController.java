@@ -22,7 +22,7 @@ public class HomeController extends Controller {
         //filesToZip.add(new ZipToStreamFlow.ZipSource("file_from_s3.txt", (scala.Function0) () -> s3.getInputStream(storagePath)));
 
         return ok()
-                .chunked(Source.from(filesToZip).via(new ZipToStreamFlow(64 * 1024))) // also try e.g. 8192 as bufferSize
+                .chunked(Source.from(filesToZip).via(new ZipToStreamFlow(64 * 1024))/*.mapMaterializedValue(val -> code hier für cleanup) */) // also try e.g. 8192 as bufferSize
                 .as("application/zip")
                 .withHeaders(Http.HeaderNames.CONTENT_DISPOSITION, "attachment; filename=backup.zip");
     }
